@@ -1,0 +1,7 @@
+.installed.cfg
+*.pyc
+bin/
+blueprint.egg-info/
+develop-eggs/
+eggs/
+parts/
