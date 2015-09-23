@@ -32,9 +32,12 @@ def parse_context(context_path):
             sys.exit()
         else:
             for key, value in context.items():
-                if len(value) == 0:
+                if value is None:
                     # Ask to fill in for the missing values.
-                    context[key] = input('{} = '.format(key))
+                    if sys.version_info >= (3, 0):
+                        context[key] = input('{} = '.format(key))
+                    else:
+                        context[key] = raw_input('{} = '.format(key))
             return context
     return context
 

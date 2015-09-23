@@ -11,9 +11,6 @@ import blueprint
 setup(
     name='blueprint',
     version=blueprint.__version__,
-    classifiers=[
-        'Programming Language :: Python :: 3',
-    ],
 
     author=blueprint.__author__,
     author_email=blueprint.__email__,
