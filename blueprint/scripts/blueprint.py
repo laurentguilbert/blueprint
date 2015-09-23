@@ -9,6 +9,8 @@ import sys
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
+from jinja2 import StrictUndefined
+from jinja2 import TemplateError
 from termcolor import cprint
 
 
@@ -38,7 +40,10 @@ def parse_context():
 
 
 def generate_output(context, templates_dir, output_dir):
-    env = Environment(loader=FileSystemLoader(templates_dir))
+    env = Environment(
+        loader=FileSystemLoader(templates_dir),
+        undefined=StrictUndefined
+    )
 
     for root, dirs, files in os.walk(templates_dir):
         for name in files:
@@ -63,12 +68,17 @@ def generate_output(context, templates_dir, output_dir):
 
             if name.endswith('.bp'):
                 template = env.get_template(relative_file_path)
-                output = template.render(context)
-                # Strip bp extension from file name.
-                new_file_path = new_file_path[:-3]
-                with open(new_file_path, 'w') as f:
-                    f.write(output)
-                cprint("> {}".format(relative_file_path), 'green')
+                try:
+                    output = template.render(context)
+                except TemplateError as e:
+                    cprint("> {}: {}".format(
+                        relative_file_path, e.message), 'red')
+                else:
+                    # Strip bp extension from file name.
+                    new_file_path = new_file_path[:-3]
+                    with open(new_file_path, 'w') as f:
+                        f.write(output)
+                    cprint("> {}".format(relative_file_path), 'green')
             else:
                 shutil.copy(file_path, new_file_path)
                 cprint("> {}".format(relative_file_path), 'white')
