@@ -4,14 +4,16 @@ Blueprint
 import argparse
 import json
 import os
+import shutil
 import sys
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
+from termcolor import cprint
 
 
 def parse_context():
-    # Make sure context file exists.
+    # Check if context file exists.
     if not os.path.isfile('context.json'):
         return {}
 
@@ -24,7 +26,7 @@ def parse_context():
         try:
             context = json.load(f)
         except ValueError as e:
-            print("\033[91mError decoding context.json:\033[0m {}".format(e))
+            cprint("Error decoding context.json: {}".format(e), 'red')
             sys.exit()
         else:
             for key, value in context.items():
@@ -41,22 +43,35 @@ def generate_output(context, templates_dir, output_dir):
     for root, dirs, files in os.walk(templates_dir):
         for name in files:
             # Create corresponding root folder.
-            base_dir = '/'.join(root.split('/')[1:])
-            new_root = os.path.relpath(os.path.join(output_dir, base_dir))
+            common_prefix = os.path.commonprefix([root, templates_dir])
+            relative_root = root[len(common_prefix):]
+
+            # Strip potential traling separator.
+            if relative_root.startswith(os.sep):
+                relative_root = relative_root[len(os.sep):]
+            new_root = os.path.join(output_dir, relative_root)
+
             try:
                 os.makedirs(new_root)
             except OSError:
                 pass
 
             # Generate corresponding file.
-            file_path = os.path.join(base_dir, name)
-            template = env.get_template(file_path)
-            output = template.render(context)
+            file_path = os.path.join(root, name)
+            relative_file_path = os.path.join(relative_root, name)
             new_file_path = os.path.join(new_root, name)
-            with open(new_file_path, 'w') as f:
-                f.write(output)
 
-            print("\033[92m>>> {}\033[0m".format(file_path))
+            if name.endswith('.bp'):
+                template = env.get_template(relative_file_path)
+                output = template.render(context)
+                # Strip bp extension from file name.
+                new_file_path = new_file_path[:-3]
+                with open(new_file_path, 'w') as f:
+                    f.write(output)
+                cprint("> {}".format(relative_file_path), 'green')
+            else:
+                shutil.copy(file_path, new_file_path)
+                cprint("> {}".format(relative_file_path), 'white')
 
 
 def cmdline():

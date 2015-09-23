@@ -28,6 +28,7 @@ setup(
 
     install_requires=[
         'jinja2==2.8.0',
+        'termcolor==1.1.0',
     ],
     entry_points={
         'console_scripts': [
