@@ -14,21 +14,21 @@ from jinja2 import TemplateError
 from termcolor import cprint
 
 
-def parse_context():
+def parse_context(context_path):
     # Check if context file exists.
-    if not os.path.isfile('context.json'):
+    if not os.path.isfile(context_path):
         return {}
 
     context = {}
     try:
-        f = open('context.json')
+        f = open(context_path)
     except IOError:
         sys.exit()
     else:
         try:
             context = json.load(f)
         except ValueError as e:
-            cprint("Error decoding context.json: {}".format(e), 'red')
+            cprint("Error decoding context file: {}".format(e), 'red')
             sys.exit()
         else:
             for key, value in context.items():
@@ -100,7 +100,13 @@ def cmdline():
         dest='output_dir',
         default='output',
     )
+    parser.add_argument(
+        '-c',
+        '--context',
+        dest='context_path',
+        default='context.json',
+    )
     args = parser.parse_args()
 
-    context = parse_context()
+    context = parse_context(args.context_path)
     generate_output(context, args.templates_dir, args.output_dir)
