@@ -42,16 +42,16 @@ def parse_context(context_path):
     return context
 
 
-def generate_output(context, templates_dir, output_dir):
+def generate_output(context, blueprint_dir, output_dir):
     env = Environment(
-        loader=FileSystemLoader(templates_dir),
+        loader=FileSystemLoader(blueprint_dir),
         undefined=StrictUndefined
     )
 
-    for root, dirs, files in os.walk(templates_dir):
+    for root, dirs, files in os.walk(blueprint_dir):
         for name in files:
             # Create corresponding root folder.
-            common_prefix = os.path.commonprefix([root, templates_dir])
+            common_prefix = os.path.commonprefix([root, blueprint_dir])
             relative_root = root[len(common_prefix):]
 
             # Strip potential traling separator.
@@ -93,9 +93,9 @@ def cmdline():
         description="Render templates using Jinja2.")
     parser.add_argument(
         '-i',
-        '--templates-dir',
-        dest='templates_dir',
-        default='templates',
+        '--blueprint-dir',
+        dest='blueprint_dir',
+        default='blueprint',
     )
     parser.add_argument(
         '-o',
@@ -112,4 +112,4 @@ def cmdline():
     args = parser.parse_args()
 
     context = parse_context(args.context_path)
-    generate_output(context, args.templates_dir, args.output_dir)
+    generate_output(context, args.blueprint_dir, args.output_dir)
